@@ -9,7 +9,7 @@ struct CustomCameraView: View {
         ZStack {
             CameraPreview(session: viewModel.session)
                 .edgesIgnoringSafeArea(.all)
-                .border(Color.blue, width: 2)
+//                .border(Color.blue, width: 2)
                 
             VStack {
                 Spacer()
