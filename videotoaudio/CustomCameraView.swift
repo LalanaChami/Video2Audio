@@ -3,7 +3,8 @@ import AVFoundation
 
 struct CustomCameraView: View {
     @StateObject private var viewModel = CameraViewModel()
-    
+    @State private var showBottomSheet = false
+
     var body: some View {
         ZStack {
             CameraPreview(session: viewModel.session)
@@ -37,8 +38,20 @@ struct CustomCameraView: View {
         .onAppear {
             viewModel.configureSession()
         }
+        .onChange(of: viewModel.isRecording) { isRecording in
+//            if !isRecording && viewModel.hasExtractedAudio {
+//                showBottomSheet = true
+//            }
+            if !isRecording  {
+                showBottomSheet = true
+            }
+        }
+        .sheet(isPresented: $showBottomSheet) {
+            AudioPlayerView(audioPlayer: viewModel.audioPlayer, isPresented: $showBottomSheet)
+        }
     }
 }
+
 
 
 struct CameraPreview: UIViewRepresentable {

@@ -5,16 +5,16 @@ import Combine
 class CameraViewModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingDelegate {
     @Published var isRecording = false
     @Published var isProcessing = false
+    @Published var hasExtractedAudio = false
+    @Published var audioPlayer = AudioPlayerViewModel()
 
     let session = AVCaptureSession()
     private let videoOutput = AVCaptureMovieFileOutput()
     private var outputURL: URL {
         let tempDir = FileManager.default.temporaryDirectory
-        let fileName = UUID().uuidString + ".mov" // Generate a unique filename
+        let fileName = UUID().uuidString + ".mov"
         return tempDir.appendingPathComponent(fileName)
     }
-
-    private var audioPlayer: AVAudioPlayer?
 
     func configureSession() {
         AVCaptureDevice.requestAccess(for: .video) { [weak self] videoGranted in
@@ -134,7 +134,8 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingD
             DispatchQueue.main.async {
                 self.isProcessing = false
                 if exporter.status == .completed {
-                    self.playAudio(from: outputURL)
+                    self.hasExtractedAudio = true
+                    self.audioPlayer.setAudioURL(url: outputURL)
                 } else if let error = exporter.error {
                     print("Error exporting audio: \(error)")
                 }
@@ -142,15 +143,6 @@ class CameraViewModel: NSObject, ObservableObject, AVCaptureFileOutputRecordingD
         }
     }
 
-    private func playAudio(from url: URL) {
-        do {
-            audioPlayer = try AVAudioPlayer(contentsOf: url)
-            audioPlayer?.play()
-        } catch {
-            print("Error playing audio: \(error)")
-        }
-    }
-    
     func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
         if let error = error {
             print("Recording error: \(error)")
